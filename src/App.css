@@ -1,0 +1,10 @@
+/* Image loading placeholder */
+img {
+  background-color: #f7fafc;
+}
+
+/* Prevent text selection on interactive elements */
+button,
+[role="button"] {
+  user-select: none;
+}

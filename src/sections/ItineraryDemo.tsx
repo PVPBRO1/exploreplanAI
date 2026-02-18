@@ -41,6 +41,8 @@ interface Activity {
   image: string;
   duration: string;
   location: string;
+  timeOfDay?: string;
+  timeColor?: string;
 }
 
 interface Day {
@@ -62,6 +64,8 @@ const itinerary: Day[] = [
         image: 'https://images.unsplash.com/photo-1431274172761-fca41d930114?w=200&q=80',
         duration: '120 min',
         location: 'Champ de Mars, 7th Arr.',
+        timeOfDay: 'Morning',
+        timeColor: 'bg-[#F56551]/10 text-[#F56551]',
       },
       {
         id: 2,
@@ -71,6 +75,8 @@ const itinerary: Day[] = [
         image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=200&q=80',
         duration: '180 min',
         location: 'Rue de Rivoli, 1st Arr.',
+        timeOfDay: 'Afternoon',
+        timeColor: 'bg-[#0073cf]/10 text-[#0073cf]',
       },
       {
         id: 3,
@@ -80,6 +86,8 @@ const itinerary: Day[] = [
         image: 'https://images.unsplash.com/photo-1478391679764-b2d8b3cd1e94?w=200&q=80',
         duration: '90 min',
         location: 'Port de la Bourdonnais',
+        timeOfDay: 'Evening',
+        timeColor: 'bg-[#38b2ac]/10 text-[#38b2ac]',
       },
     ],
   },
@@ -223,6 +231,11 @@ export function ItineraryDemo() {
 
                           <div className="flex gap-4">
                             <div className="flex-1 min-w-0">
+                              {activity.timeOfDay && (
+                                <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mb-1.5 ${activity.timeColor}`}>
+                                  {activity.timeOfDay}
+                                </span>
+                              )}
                               <h5 className="text-sm font-semibold text-[#0073cf] mb-1">
                                 {activity.name}
                               </h5>

@@ -1,0 +1,11 @@
+node_modules
+server/node_modules
+server/dist
+dist
+.git
+.gitignore
+*.md
+.env
+.env.*
+.vscode
+.cursor

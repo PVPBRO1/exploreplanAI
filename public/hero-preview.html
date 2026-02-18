@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hero Variants Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f5f5f5; color: #18181b; }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 32px; max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+  @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+  .label { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #6366f1; margin-bottom: 8px; }
+  .desc { font-size: 12px; color: #71717a; margin-bottom: 12px; }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid #e5e7eb;
+    position: relative;
+  }
+
+  .card > .bg-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+
+  .card > .fade-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  .hero {
+    position: relative;
+    padding: 36px 32px 44px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+
+  .hero h1 {
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .hero p {
+    font-size: 13px;
+    color: #6b7280;
+    max-width: 420px;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .hero .btn {
+    display: inline-block;
+    background: #18181b;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+  }
+
+  .ai-text {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 300% 300%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes float1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(30px, -20px) scale(1.05); }
+  }
+  @keyframes float2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-25px, 15px) scale(1.08); }
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+  }
+
+  /* Navbar */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    position: relative;
+    z-index: 3;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .nav-logo {
+    font-size: 16px;
+    font-weight: 700;
+    color: #6366f1;
+    text-decoration: none;
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .nav-links a {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    text-decoration: none;
+  }
+  .nav-signin {
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    background: #18181b;
+    padding: 6px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+  }
+
+  .page-title {
+    text-align: center;
+    padding: 48px 24px 0;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .page-title h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  .page-title p { font-size: 14px; color: #71717a; }
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>Hero Section Variants</h1>
+  <p>Pick the style you like best. Each variant shows a different background treatment.</p>
+</div>
+
+<div class="grid">
+
+  <!-- VARIANT 1: Aerial Clouds -->
+  <div>
+    <div class="label">Variant 1 — Aerial Clouds</div>
+    <div class="desc">Soft cloud photography fading to white. Premium travel feel.</div>
+    <div class="card">
+      <img src="/hero-clouds.png" class="bg-img" style="opacity:0.5; mix-blend-mode:multiply;" alt="">
+      <div class="fade-overlay" style="background:linear-gradient(to bottom, transparent 30%, white 95%);"></div>
+      <nav class="nav"><a href="#" class="nav-logo">ExplorePlan</a><div class="nav-links"><a href="#">Trip Planner</a><a href="#">Destinations</a><a href="#">Pricing</a><a href="#" class="nav-signin">Sign In</a></div></nav>
+      <div class="hero">
+        <h1>Plan Smarter Trips,<br>Powered by <span class="ai-text">AI</span></h1>
+        <p>Your intelligent travel companion that builds personalized, day by day itineraries around your style, interests, and budget.</p>
+        <a href="#" class="btn">Start Planning for Free</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARIANT 2: Soft Bokeh -->
+  <div>
+    <div class="label">Variant 2 — Soft Bokeh</div>
+    <div class="desc">Abstract light bokeh. Clean, minimal, Apple-style aesthetic.</div>
+    <div class="card">
+      <img src="/hero-bokeh.png" class="bg-img" style="opacity:0.5; mix-blend-mode:multiply;" alt="">
+      <div class="fade-overlay" style="background:linear-gradient(to bottom, transparent 40%, white 95%);"></div>
+      <nav class="nav"><a href="#" class="nav-logo">ExplorePlan</a><div class="nav-links"><a href="#">Trip Planner</a><a href="#">Destinations</a><a href="#">Pricing</a><a href="#" class="nav-signin">Sign In</a></div></nav>
+      <div class="hero">
+        <h1>Plan Smarter Trips,<br>Powered by <span class="ai-text">AI</span></h1>
+        <p>Your intelligent travel companion that builds personalized, day by day itineraries around your style, interests, and budget.</p>
+        <a href="#" class="btn">Start Planning for Free</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARIANT 3: Watercolor Wash -->
+  <div>
+    <div class="label">Variant 3 — Watercolor Wash</div>
+    <div class="desc">Delicate blue-lavender watercolor bleed. Artistic and airy.</div>
+    <div class="card">
+      <img src="/hero-watercolor.png" class="bg-img" style="opacity:0.6; mix-blend-mode:multiply;" alt="">
+      <div class="fade-overlay" style="background:linear-gradient(to bottom, transparent 40%, white 95%);"></div>
+      <nav class="nav"><a href="#" class="nav-logo">ExplorePlan</a><div class="nav-links"><a href="#">Trip Planner</a><a href="#">Destinations</a><a href="#">Pricing</a><a href="#" class="nav-signin">Sign In</a></div></nav>
+      <div class="hero">
+        <h1>Plan Smarter Trips,<br>Powered by <span class="ai-text">AI</span></h1>
+        <p>Your intelligent travel companion that builds personalized, day by day itineraries around your style, interests, and budget.</p>
+        <a href="#" class="btn">Start Planning for Free</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARIANT 4: Topographic Lines -->
+  <div>
+    <div class="label">Variant 4 — Topographic Map</div>
+    <div class="desc">Subtle contour lines on gradient. Exploration/travel brand feel.</div>
+    <div class="card">
+      <img src="/hero-topo.png" class="bg-img" style="opacity:0.45; mix-blend-mode:multiply;" alt="">
+      <div class="fade-overlay" style="background:linear-gradient(to bottom, transparent 40%, white 95%);"></div>
+      <nav class="nav"><a href="#" class="nav-logo">ExplorePlan</a><div class="nav-links"><a href="#">Trip Planner</a><a href="#">Destinations</a><a href="#">Pricing</a><a href="#" class="nav-signin">Sign In</a></div></nav>
+      <div class="hero">
+        <h1>Plan Smarter Trips,<br>Powered by <span class="ai-text">AI</span></h1>
+        <p>Your intelligent travel companion that builds personalized, day by day itineraries around your style, interests, and budget.</p>
+        <a href="#" class="btn">Start Planning for Free</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARIANT 5: Pure CSS Gradient + Orbs -->
+  <div>
+    <div class="label">Variant 5 — CSS Gradient + Floating Orbs</div>
+    <div class="desc">No image needed. Always crisp. Soft indigo/cyan orbs drift slowly.</div>
+    <div class="card" style="background:linear-gradient(to bottom, #eef2ff, #f8faff, white);">
+      <div class="orb" style="width:300px; height:300px; background:radial-gradient(circle, rgba(99,102,241,0.35), transparent 70%); top:-15%; left:5%; animation:float1 18s ease-in-out infinite; opacity:0.6;"></div>
+      <div class="orb" style="width:260px; height:260px; background:radial-gradient(circle, rgba(6,182,212,0.3), transparent 70%); top:10%; right:0; animation:float2 22s ease-in-out infinite; opacity:0.6;"></div>
+      <div class="orb" style="width:220px; height:220px; background:radial-gradient(circle, rgba(139,92,246,0.25), transparent 70%); bottom:-10%; left:35%; animation:float1 16s ease-in-out infinite; opacity:0.5;"></div>
+      <nav class="nav"><a href="#" class="nav-logo">ExplorePlan</a><div class="nav-links"><a href="#">Trip Planner</a><a href="#">Destinations</a><a href="#">Pricing</a><a href="#" class="nav-signin">Sign In</a></div></nav>
+      <div class="hero">
+        <h1>Plan Smarter Trips,<br>Powered by <span class="ai-text">AI</span></h1>
+        <p>Your intelligent travel companion that builds personalized, day by day itineraries around your style, interests, and budget.</p>
+        <a href="#" class="btn">Start Planning for Free</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARIANT 6: CSS Mesh Gradient -->
+  <div>
+    <div class="label">Variant 6 — CSS Mesh Gradient</div>
+    <div class="desc">Rich multi-color mesh. Bold, modern SaaS look. No images.</div>
+    <div class="card" style="background:linear-gradient(135deg, #f0f4ff 0%, #e8ecff 25%, #f0fbff 50%, #faf5ff 75%, #fff 100%);">
+      <div style="position:absolute; inset:0; background:radial-gradient(ellipse at 20% 20%, rgba(99,102,241,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 30%, rgba(6,182,212,0.1) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(139,92,246,0.08) 0%, transparent 50%); z-index:0;"></div>
+      <div class="fade-overlay" style="background:linear-gradient(to bottom, transparent 60%, white 100%);"></div>
+      <nav class="nav"><a href="#" class="nav-logo">ExplorePlan</a><div class="nav-links"><a href="#">Trip Planner</a><a href="#">Destinations</a><a href="#">Pricing</a><a href="#" class="nav-signin">Sign In</a></div></nav>
+      <div class="hero">
+        <h1>Plan Smarter Trips,<br>Powered by <span class="ai-text">AI</span></h1>
+        <p>Your intelligent travel companion that builds personalized, day by day itineraries around your style, interests, and budget.</p>
+        <a href="#" class="btn">Start Planning for Free</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

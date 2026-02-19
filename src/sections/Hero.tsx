@@ -116,7 +116,7 @@ export function Hero() {
             <button
               key={action.label}
               onClick={() => handleSubmit(action.message)}
-              className="px-4 py-2 rounded-full bg-white/15 backdrop-blur-sm text-white text-sm font-medium border border-white/30 hover:bg-white/25 hover:border-white/50 transition-all duration-300"
+              className="px-4 py-2 rounded-full bg-white/90 text-gray-700 text-sm font-medium hover:bg-white hover:shadow-md transition-all duration-300"
             >
               {action.label}
             </button>

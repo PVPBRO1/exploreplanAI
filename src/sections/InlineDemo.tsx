@@ -1,46 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Send, Paperclip, Mic, Calendar, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ASSISTANT_AVATAR, ASSISTANT_NAME, BRAND_NAME } from '../lib/constants/branding';
 
-const DEMO_STEPS = [
-  {
-    type: 'user' as const,
-    text: "Plan a 5-day trip to Paris for a couple. We love food, art, and have a moderate budget.",
-  },
-  {
-    type: 'ai' as const,
-    text: `Ooh, Paris! 🥐 Fantastic choice — did you know Paris has over 1,800 bakeries? You're going to eat SO well. Let me ask a few things to personalise your trip. What pace do you prefer?`,
-  },
-  {
-    type: 'chips' as const,
-    items: ['relaxed', 'balanced', 'packed'],
-  },
-  {
-    type: 'user' as const,
-    text: 'balanced',
-  },
-  {
-    type: 'chips-category' as const,
-    label: 'What kind of experiences?',
-    items: ['🍽️ Fine Dining', '🏛️ Culture & Art', '🌿 Parks', '🎭 Theater', '🛍️ Shopping', '📸 Photography'],
-  },
-  {
-    type: 'itinerary' as const,
-    title: '5-Day Paris Itinerary',
-    subtitle: 'Art, food & culture — balanced pace',
-    days: [
-      'Day 1: Eiffel Tower & Seine Cruise',
-      'Day 2: Louvre Museum & Le Marais',
-      'Day 3: Versailles Day Trip',
-      'Day 4: Montmartre & Sacré-Cœur',
-      'Day 5: Champs-Élysées & Farewell Dinner',
-    ],
-  },
+interface DemoStep {
+  type: 'user' | 'ai' | 'chips';
+  text?: string;
+  items?: string[];
+}
+
+const DEMO_STEPS: DemoStep[] = [
+  { type: 'user', text: 'Plan a 5-day trip to Paris for a couple. We love food, art, and have a moderate budget.' },
+  { type: 'ai', text: '**Paris** in 5 days — solid choice. Louvre, croissants, the Seine at dusk. What pace are you thinking?' },
+  { type: 'chips', items: ['Relaxed', 'Balanced', 'Packed'] },
 ];
 
-const STEP_DELAY = 1600;
+const STEP_DELAY = 1800;
+const RIGHT_PANEL_IMAGE = '/destinations/paris.jpg';
 
 export function InlineDemo() {
   const [visibleCount, setVisibleCount] = useState(0);
@@ -48,17 +25,11 @@ export function InlineDemo() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const prefersReduced =
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const prefersReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !hasStarted) {
-          setHasStarted(true);
-        }
-      },
+      (entries) => { if (entries[0].isIntersecting && !hasStarted) setHasStarted(true); },
       { threshold: 0.25 },
     );
     const el = sectionRef.current;
@@ -68,15 +39,9 @@ export function InlineDemo() {
 
   useEffect(() => {
     if (!hasStarted) return;
-    if (prefersReduced) {
-      setVisibleCount(DEMO_STEPS.length);
-      return;
-    }
-
+    if (prefersReduced) { setVisibleCount(DEMO_STEPS.length); return; }
     const timers: ReturnType<typeof setTimeout>[] = [];
-    DEMO_STEPS.forEach((_, i) => {
-      timers.push(setTimeout(() => setVisibleCount(i + 1), (i + 1) * STEP_DELAY));
-    });
+    DEMO_STEPS.forEach((_, i) => { timers.push(setTimeout(() => setVisibleCount(i + 1), (i + 1) * STEP_DELAY)); });
     return () => timers.forEach(clearTimeout);
   }, [hasStarted, prefersReduced]);
 
@@ -95,149 +60,155 @@ export function InlineDemo() {
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto">
-          {/* Demo window */}
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-            {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 bg-gray-50/60">
-              <img
-                src={ASSISTANT_AVATAR}
-                alt={ASSISTANT_NAME}
-                className="w-9 h-9 rounded-full object-cover border border-gray-200"
-              />
-              <div>
-                <p className="text-sm font-semibold text-zinc-900">{BRAND_NAME}</p>
-                <p className="text-[11px] text-emerald-500 font-medium">Online</p>
+        {/* Browser Frame Mockup */}
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+            {/* Fake browser chrome */}
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 border-b border-gray-200">
+              <div className="flex gap-1.5">
+                <span className="w-3 h-3 rounded-full bg-red-400" />
+                <span className="w-3 h-3 rounded-full bg-yellow-400" />
+                <span className="w-3 h-3 rounded-full bg-green-400" />
+              </div>
+              <div className="flex-1 mx-4">
+                <div className="bg-white rounded-lg px-3 py-1 text-xs text-gray-400 border border-gray-200 max-w-md mx-auto text-center truncate">
+                  wanderplan.ai/chat
+                </div>
               </div>
             </div>
 
-            {/* Messages */}
-            <div className="p-6 space-y-4 min-h-[300px]">
-              <AnimatePresence initial={false}>
-                {visibleSteps.map((step, i) => (
-                  <motion.div
-                    key={i}
-                    initial={prefersReduced ? {} : { opacity: 0, y: 14 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    {step.type === 'user' && (
-                      <div className="flex justify-end">
-                        <div className="bg-zinc-900 text-white px-4 py-3 rounded-2xl rounded-br-sm text-sm max-w-[85%] leading-relaxed">
-                          {step.text}
-                        </div>
-                      </div>
-                    )}
-
-                    {step.type === 'ai' && (
-                      <div className="flex gap-3">
-                        <img
-                          src={ASSISTANT_AVATAR}
-                          alt={ASSISTANT_NAME}
-                          className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-0.5"
-                        />
-                        <div className="bg-gray-100 px-4 py-3 rounded-2xl rounded-bl-sm text-sm text-zinc-800 max-w-[85%] leading-relaxed">
-                          {step.text}
-                        </div>
-                      </div>
-                    )}
-
-                    {step.type === 'chips' && (
-                      <div className="flex flex-wrap gap-2 pl-10">
-                        {step.items?.map((chip, j) => (
-                          <motion.span
-                            key={j}
-                            initial={prefersReduced ? {} : { opacity: 0, scale: 0.85 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: j * 0.08 }}
-                            className="px-3.5 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-zinc-700"
-                          >
-                            {chip}
-                          </motion.span>
-                        ))}
-                      </div>
-                    )}
-
-                    {step.type === 'chips-category' && (
-                      <div className="pl-10">
-                        {step.label && (
-                          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                            {step.label}
-                          </p>
-                        )}
-                        <div className="flex flex-wrap gap-2">
-                          {step.items?.map((chip, j) => (
-                            <motion.span
-                              key={j}
-                              initial={prefersReduced ? {} : { opacity: 0, scale: 0.85 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: j * 0.08 }}
-                              className="px-3 py-1.5 bg-blue-50 text-[#0073cf] rounded-full text-xs font-semibold border border-blue-100"
-                            >
-                              {chip}
-                            </motion.span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {step.type === 'itinerary' && (
-                      <motion.div
-                        initial={prefersReduced ? {} : { opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="ml-10 bg-gradient-to-br from-[#0073cf] to-[#00b4d8] rounded-2xl p-5 text-white"
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <Sparkles className="w-4 h-4 text-white/80" />
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-white/70">
-                            AI Generated Itinerary
-                          </span>
-                        </div>
-                        <h4 className="font-bold text-base mb-1">{step.title}</h4>
-                        <p className="text-xs text-white/70 mb-3">{step.subtitle}</p>
-                        <div className="space-y-1.5">
-                          {step.days?.map((day, j) => (
-                            <motion.div
-                              key={j}
-                              initial={prefersReduced ? {} : { opacity: 0, x: -8 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: j * 0.1 }}
-                              className="text-sm text-white/90 flex items-center gap-2"
-                            >
-                              <span className="w-1.5 h-1.5 rounded-full bg-white/60 flex-shrink-0" />
-                              {day}
-                            </motion.div>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-
-              {/* Typing indicator */}
-              {!isComplete && hasStarted && !prefersReduced && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex items-center gap-3"
-                >
-                  <img
-                    src={ASSISTANT_AVATAR}
-                    alt={ASSISTANT_NAME}
-                    className="w-7 h-7 rounded-full object-cover flex-shrink-0"
-                  />
-                  <div className="bg-gray-100 px-4 py-3 rounded-2xl rounded-bl-sm flex items-center gap-1">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            {/* Split layout mimicking chat page */}
+            <div className="flex" style={{ height: 460 }}>
+              {/* Left: Chat panel */}
+              <div className="flex-1 flex flex-col min-w-0" style={{ flex: '0 0 58%' }}>
+                {/* Chat top bar */}
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100 bg-white/95 flex-shrink-0">
+                  <button className="flex items-center gap-1 text-xs text-gray-500">
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Back</span>
+                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <img src={ASSISTANT_AVATAR} alt={ASSISTANT_NAME} className="w-5 h-5 rounded-full object-cover" />
+                    <span className="text-xs font-bold text-zinc-900">{BRAND_NAME}</span>
                   </div>
-                </motion.div>
-              )}
+                  <div className="w-10" />
+                </div>
+
+                {/* Messages area */}
+                <div className="flex-1 overflow-hidden px-4 py-4 space-y-3">
+                  <AnimatePresence initial={false}>
+                    {visibleSteps.map((step, i) => (
+                      <motion.div
+                        key={i}
+                        initial={prefersReduced ? {} : { opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.35 }}
+                      >
+                        {step.type === 'user' && (
+                          <div className="flex justify-end">
+                            <div className="bg-zinc-900 text-white px-3.5 py-2.5 rounded-2xl rounded-br-sm text-xs max-w-[85%] leading-relaxed">
+                              {step.text}
+                            </div>
+                          </div>
+                        )}
+                        {step.type === 'ai' && (
+                          <div className="flex gap-2">
+                            <img src={ASSISTANT_AVATAR} alt={ASSISTANT_NAME} className="w-6 h-6 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                            <div
+                              className="bg-gray-100 px-3.5 py-2.5 rounded-2xl rounded-bl-sm text-xs text-zinc-800 max-w-[85%] leading-relaxed"
+                              dangerouslySetInnerHTML={{ __html: (step.text || '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }}
+                            />
+                          </div>
+                        )}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+
+                  {!isComplete && hasStarted && !prefersReduced && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2">
+                      <img src={ASSISTANT_AVATAR} alt={ASSISTANT_NAME} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                      <div className="bg-gray-100 px-3.5 py-2.5 rounded-2xl rounded-bl-sm flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Chip bar above input */}
+                {visibleSteps.some((s) => s.type === 'chips') && (
+                  <div className="px-4 pb-2 flex-shrink-0">
+                    <div className="flex gap-1.5 flex-wrap">
+                      {(visibleSteps.find((s) => s.type === 'chips')?.items || []).map((chip, j) => (
+                        <motion.span
+                          key={j}
+                          initial={prefersReduced ? {} : { opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: j * 0.06 }}
+                          className="px-3 py-1.5 rounded-full bg-white/90 text-gray-700 text-[11px] font-medium border border-gray-200"
+                        >
+                          {chip}
+                        </motion.span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Fake input bar */}
+                <div className="p-3 flex-shrink-0 border-t border-gray-100">
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
+                    <div className="text-xs text-gray-400 mb-2">Tell me about your dream trip...</div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <span className="flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 text-[10px] text-gray-500">
+                        <Calendar className="w-2.5 h-2.5" /> Select dates
+                      </span>
+                      <span className="flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 text-[10px] text-gray-500">
+                        <Users className="w-2.5 h-2.5" /> 2 travelers
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between pt-1.5 border-t border-gray-50">
+                      <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                        <Paperclip className="w-2.5 h-2.5" /> Attach
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <Mic className="w-3 h-3 text-gray-300" />
+                        <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-900 text-white text-[10px] font-semibold">
+                          <Send className="w-2.5 h-2.5" /> Plan my trip
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Inspiration image */}
+              <div className="hidden md:block relative border-l border-gray-100" style={{ flex: '0 0 42%' }}>
+                <img src={RIGHT_PANEL_IMAGE} alt="Paris, France" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <p className="text-white text-xl font-bold" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>Paris, France</p>
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex gap-1">
+                      {[0, 1, 2].map((i) => (
+                        <span key={i} className={`h-1 rounded-full ${i === 1 ? 'bg-white w-4' : 'bg-white/40 w-1'}`} />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-6 h-6 rounded-full bg-white/20 border border-white/30 flex items-center justify-center">
+                        <ChevronLeft className="w-3 h-3 text-white" />
+                      </span>
+                      <span className="w-6 h-6 rounded-full bg-white/20 border border-white/30 flex items-center justify-center">
+                        <ChevronRight className="w-3 h-3 text-white" />
+                      </span>
+                      <span className="px-3 py-1 rounded-full bg-white text-zinc-900 text-[10px] font-bold">Plan this trip</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Footer */}
+            {/* CTA footer */}
             {isComplete && (
               <motion.div
                 initial={prefersReduced ? {} : { opacity: 0, y: 8 }}

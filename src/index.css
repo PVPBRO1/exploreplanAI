@@ -165,6 +165,26 @@ select:focus {
   100% { background-position: -200% 0; }
 }
 
+/* Print styles for itinerary PDF */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #itinerary-doc,
+  #itinerary-doc * {
+    visibility: visible;
+  }
+  #itinerary-doc {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,

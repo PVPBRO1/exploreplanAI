@@ -1,12 +1,13 @@
+import { useRef, useEffect, useState } from 'react';
 import { MapPin, ChevronDown } from 'lucide-react';
-import { LinkButton } from '../components/LinkButton';
-import { useTransitionNavigate } from '../components/TransitionContext';
+import { useNavigate } from 'react-router-dom';
+import { ASSISTANT_AVATAR, ASSISTANT_NAME, BRAND_NAME } from '../lib/constants/branding';
 import { QUICK_ACTIONS } from '../lib/constants/images';
 
 const chatMessages = [
-  { role: 'ai', text: "Hey there! I'm your ExplorePlan travel agent. Tell me about your dream trip — or pick a quick action below to get started!" },
+  { role: 'ai', text: `Hey there! I'm ${ASSISTANT_NAME}, your personal travel guide. Tell me about your dream trip — or pick a quick action below to get started!` },
   { role: 'user', text: "I want to go to Paris for 4 days. I love art, good food, and historic sites." },
-  { role: 'ai', text: "Paris is perfect for that! Let me put together a personalized itinerary. First — what's your budget like?" },
+  { role: 'ai', text: "Paris is *chef's kiss* for that! Let me put together a personalised itinerary. First — what's your budget like?" },
 ];
 
 const experienceChips = [
@@ -23,8 +24,107 @@ const itineraryPreview = [
   { day: 'Day 3', activity: 'Versailles Day Trip', time: '8:30 AM', tag: 'Full Day', color: 'bg-emerald-50 text-emerald-600' },
 ];
 
+function AnimatedChatPreview() {
+  const [visible, setVisible] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !hasStarted) {
+          setHasStarted(true);
+        }
+      },
+      { threshold: 0.4 },
+    );
+    const el = ref.current;
+    if (el) observer.observe(el);
+    return () => { if (el) observer.unobserve(el); };
+  }, [hasStarted]);
+
+  useEffect(() => {
+    if (!hasStarted) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    chatMessages.forEach((_, i) => {
+      timers.push(setTimeout(() => setVisible(i + 1), (i + 1) * 900));
+    });
+    return () => timers.forEach(clearTimeout);
+  }, [hasStarted]);
+
+  const navigate = useNavigate();
+
+  return (
+    <div ref={ref} className="bg-white rounded-3xl border border-gray-100 shadow-lg overflow-hidden">
+      {/* Chat header */}
+      <div className="flex items-center gap-3 px-5 py-3.5 border-b border-gray-100 bg-gray-50/60">
+        <img src={ASSISTANT_AVATAR} alt={ASSISTANT_NAME} className="w-8 h-8 rounded-full object-cover" />
+        <div>
+          <p className="text-sm font-semibold text-zinc-900">{BRAND_NAME} Agent</p>
+          <p className="text-[11px] text-emerald-500 font-medium">Online</p>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="p-5 space-y-3 min-h-[180px]">
+        {chatMessages.slice(0, visible).map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} gap-2`}>
+            {msg.role === 'ai' && (
+              <img src={ASSISTANT_AVATAR} alt={ASSISTANT_NAME} className="w-6 h-6 rounded-full object-cover flex-shrink-0 mt-1" />
+            )}
+            <div className={`max-w-[80%] px-4 py-2.5 text-sm leading-relaxed ${
+              msg.role === 'user'
+                ? 'bg-[#0073cf] text-white rounded-2xl rounded-br-md shadow-sm'
+                : 'bg-gray-50 text-zinc-800 rounded-2xl rounded-bl-md border border-gray-100'
+            }`}>
+              {msg.text}
+            </div>
+          </div>
+        ))}
+        {visible < chatMessages.length && hasStarted && (
+          <div className="flex gap-2">
+            <img src={ASSISTANT_AVATAR} alt={ASSISTANT_NAME} className="w-6 h-6 rounded-full object-cover flex-shrink-0 mt-1" />
+            <div className="bg-gray-100 px-4 py-3 rounded-2xl flex items-center gap-1">
+              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Experience chips */}
+      <div className="px-5 pb-2">
+        <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">What kind of experience?</p>
+        <div className="flex flex-wrap gap-1.5">
+          {experienceChips.map((cat) => (
+            <span key={cat} className="px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-full text-xs font-semibold text-[#0073cf] cursor-default">
+              {cat}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Quick actions */}
+      <div className="px-5 py-4 border-t border-gray-100 bg-gray-50/40">
+        <div className="flex flex-wrap gap-2">
+          {QUICK_ACTIONS.slice(0, 4).map((action) => (
+            <button
+              key={action.id}
+              onClick={() => navigate(`/chat?msg=${encodeURIComponent(action.message)}`)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-medium text-zinc-700 hover:border-[#0073cf] hover:text-[#0073cf] hover:shadow-sm transition-all"
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function HowItWorks() {
-  const { navigateWithTransition } = useTransitionNavigate();
+  const navigate = useNavigate();
 
   return (
     <section id="how-it-works" className="bg-[#faf9f6]">
@@ -34,26 +134,26 @@ export function HowItWorks() {
         </h2>
 
         <div className="space-y-32">
-          {/* Step 1: Start chatting */}
+          {/* Step 1 */}
           <div className="lg:grid lg:grid-cols-2 lg:gap-20 lg:items-center">
             <div className="mb-12 lg:mb-0">
               <p className="text-sm font-semibold text-[#0073cf] uppercase tracking-widest mb-4">Step 1</p>
               <h3 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-5 leading-tight">
-                Start chatting with us.
+                Start chatting with {ASSISTANT_NAME}.
               </h3>
               <p className="text-gray-500 text-lg leading-relaxed mb-6">
-                Talk to our AI travel agent like you would a friend. Tell us where you want to go,
-                what you love, and we'll handle the rest.
+                Talk to {ASSISTANT_NAME} like you would a friend. Tell him where you want to go,
+                what you love, and he'll handle the rest.
               </p>
               <div className="flex flex-wrap gap-3">
-                <LinkButton
-                  to="/chat"
+                <button
+                  onClick={() => navigate('/chat')}
                   className="inline-flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold px-6 py-3 rounded-full text-sm"
                 >
                   Start chatting
-                </LinkButton>
+                </button>
                 <a
-                  href="#inspired"
+                  href="#stats-section"
                   className="inline-flex items-center gap-2 text-[#0073cf] hover:text-[#005fa3] font-medium text-sm px-4 py-3 transition-colors"
                 >
                   <ChevronDown className="w-4 h-4" />
@@ -62,73 +162,13 @@ export function HowItWorks() {
               </div>
             </div>
 
-            {/* Chat visual — Layla-style */}
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-lg overflow-hidden">
-              {/* Chat header */}
-              <div className="flex items-center gap-3 px-5 py-3.5 border-b border-gray-100 bg-gray-50/60">
-                <div className="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">E</span>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-zinc-900">ExplorePlan Agent</p>
-                  <p className="text-[11px] text-emerald-500 font-medium">Online</p>
-                </div>
-              </div>
-
-              {/* Messages */}
-              <div className="p-5 space-y-3">
-                {chatMessages.map((msg, i) => (
-                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} gap-2`}>
-                    {msg.role === 'ai' && (
-                      <div className="w-6 h-6 rounded-full bg-zinc-900 flex items-center justify-center flex-shrink-0 mt-1">
-                        <span className="text-white text-[9px] font-bold">E</span>
-                      </div>
-                    )}
-                    <div className={`max-w-[80%] px-4 py-2.5 text-sm leading-relaxed ${
-                      msg.role === 'user'
-                        ? 'bg-[#0073cf] text-white rounded-2xl rounded-br-md shadow-sm'
-                        : 'bg-gray-50 text-zinc-800 rounded-2xl rounded-bl-md border border-gray-100'
-                    }`}>
-                      {msg.text}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Experience chips */}
-              <div className="px-5 pb-2">
-                <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">What kind of experience?</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {experienceChips.map((cat) => (
-                    <span key={cat} className="px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-full text-xs font-semibold text-[#0073cf] hover:shadow-sm transition-shadow cursor-default">
-                      {cat}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Quick actions */}
-              <div className="px-5 py-4 border-t border-gray-100 bg-gray-50/40">
-                <div className="flex flex-wrap gap-2">
-                  {QUICK_ACTIONS.slice(0, 4).map((action) => (
-                    <button
-                      key={action.id}
-                      onClick={() => navigateWithTransition(`/chat?intent=${action.id}`)}
-                      className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-medium text-zinc-700 hover:border-[#0073cf] hover:text-[#0073cf] hover:shadow-sm transition-all"
-                    >
-                      {action.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <AnimatedChatPreview />
           </div>
 
-          {/* Step 2: Get your itinerary */}
+          {/* Step 2 */}
           <div className="lg:grid lg:grid-cols-2 lg:gap-20 lg:items-center">
             <div className="mb-12 lg:mb-0 order-2 lg:order-1">
               <div className="bg-white rounded-3xl border border-gray-100 shadow-lg overflow-hidden">
-                {/* Toolbar */}
                 <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50/60">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-[#FF5F57]" />
@@ -149,7 +189,6 @@ export function HowItWorks() {
                     </div>
                   </div>
 
-                  {/* Timeline itinerary */}
                   <div className="space-y-2.5 border-l-2 border-gray-100 ml-2 pl-4">
                     {itineraryPreview.map((item, i) => (
                       <div key={i} className="relative flex items-center gap-3 p-2.5 bg-gray-50 rounded-xl">
@@ -167,7 +206,12 @@ export function HowItWorks() {
 
                   <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
                     <span className="text-xs text-gray-400">10 activities planned</span>
-                    <button className="text-xs font-semibold text-zinc-900 hover:text-[#0073cf] transition-colors">View full itinerary →</button>
+                    <button
+                      onClick={() => navigate('/chat')}
+                      className="text-xs font-semibold text-zinc-900 hover:text-[#0073cf] transition-colors"
+                    >
+                      View full itinerary →
+                    </button>
                   </div>
                 </div>
               </div>
@@ -175,17 +219,17 @@ export function HowItWorks() {
             <div className="order-1 lg:order-2">
               <p className="text-sm font-semibold text-[#0073cf] uppercase tracking-widest mb-4">Step 2</p>
               <h3 className="text-3xl sm:text-4xl font-bold text-zinc-900 mb-5 leading-tight">
-                Get your personalized itinerary.
+                Get your personalised itinerary.
               </h3>
               <p className="text-gray-500 text-lg leading-relaxed">
-                In seconds, our AI assembles a complete day by day plan with activities,
+                In seconds, {ASSISTANT_NAME} assembles a complete day‑by‑day plan with activities,
                 restaurants, and local tips tailored precisely to how you want to travel.
                 Every itinerary is built from scratch just for you.
               </p>
             </div>
           </div>
 
-          {/* Step 3: Book stays and flights */}
+          {/* Step 3 */}
           <div className="lg:grid lg:grid-cols-2 lg:gap-20 lg:items-center">
             <div className="mb-12 lg:mb-0">
               <p className="text-sm font-semibold text-[#0073cf] uppercase tracking-widest mb-4">Step 3</p>
@@ -198,7 +242,6 @@ export function HowItWorks() {
               </p>
             </div>
 
-            {/* Stays visual — scanning visualization */}
             <div className="bg-white rounded-3xl border border-gray-100 shadow-lg overflow-hidden">
               <div className="flex border-b border-gray-100">
                 <button className="flex-1 py-3.5 text-xs font-bold text-zinc-900 border-b-2 border-zinc-900">Stays</button>

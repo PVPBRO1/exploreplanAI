@@ -1,80 +1,136 @@
-import { LinkButton } from '../components/LinkButton';
-import { ImageSkeleton } from '../components/ImageSkeleton';
-import { HERO_IMAGES } from '../lib/constants/images';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Paperclip, Mic, Send, ChevronDown } from 'lucide-react';
+import { ASSISTANT_AVATAR, HERO_BG, TAGLINE, SUBTITLE } from '../lib/constants/branding';
+import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
 
-interface HeroProps {
-  onSeeHowItWorks?: () => void;
-}
+const placeholders = [
+  'Create a 7-day Paris itinerary for a birthday getaway',
+  'Help me plan a budget-friendly vacation to Barcelona',
+  'Plan a romantic 5-day trip to Rome for couples',
+  'Design an unforgettable adventure trip to Japan',
+  'Tokyo in 6 days: food, culture & bucket-list stops',
+  'Best way to explore Bali in 10 days',
+  'Best 7-day beach vacation itinerary in Greece',
+  'Plan a road trip along the Pacific Coast Highway',
+];
 
-export function Hero({ onSeeHowItWorks }: HeroProps) {
+const quickActions = [
+  { label: 'Create a new trip', message: "I'd like to plan a new trip!" },
+  { label: 'Inspire me where to go', message: "Inspire me — where should I travel next?" },
+  { label: 'Plan a road trip', message: "Help me plan an epic road trip!" },
+  { label: 'Plan a last-minute escape', message: "I need a last-minute getaway — what do you suggest?" },
+  { label: 'Take a quiz', message: "Give me a quick travel quiz to figure out my ideal destination!" },
+];
+
+export function Hero() {
+  const [inputValue, setInputValue] = useState('');
+  const { currentPlaceholder, isAnimating } = useRotatingPlaceholder(placeholders, 3000);
+  const navigate = useNavigate();
+
+  const handleSubmit = (message?: string) => {
+    const msg = message || inputValue.trim();
+    if (!msg) return;
+    navigate(`/chat?msg=${encodeURIComponent(msg)}`);
+  };
+
+  const scrollToContent = () => {
+    document.getElementById('stats-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <section className="relative min-h-[92vh] flex items-center overflow-hidden bg-gradient-to-b from-[#f0f7ff] via-[#f7faff] to-white">
-      <div className="hero-glow hero-glow-1" />
-      <div className="hero-glow hero-glow-2" />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <img
+          src={HERO_BG}
+          alt="City skyline at dusk"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/50" />
+      </div>
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-24 lg:py-0">
-        <div className="lg:grid lg:grid-cols-2 lg:gap-16 lg:items-center">
-          <div className="hero-heading mb-12 lg:mb-0">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-zinc-900 mb-6">
-              Travel<br />differently.
-            </h1>
-            <p className="text-lg sm:text-xl text-gray-500 leading-relaxed mb-10 max-w-md">
-              ExplorePlan brings the world to you. Tell our AI where you want to go
-              and it builds a personalized, day by day itinerary around your style,
-              budget, and interests.
-            </p>
-            <div className="hero-cta flex flex-wrap items-center gap-4">
-              <LinkButton
-                to="/chat"
-                className="inline-flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-base px-7 py-3.5 rounded-full hover:shadow-xl hover:-translate-y-0.5"
-              >
-                Start chatting
-              </LinkButton>
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24">
+        <div className="text-center mb-8">
+          {/* Vincent avatar */}
+          <div className="flex justify-center mb-5">
+            <img
+              src={ASSISTANT_AVATAR}
+              alt="Vincent"
+              className="h-16 w-16 rounded-full object-cover border-2 border-white/60 shadow-xl"
+            />
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight"
+            style={{ textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}>
+            {TAGLINE}
+          </h1>
+          <p className="text-lg sm:text-xl text-white/85 max-w-xl mx-auto"
+            style={{ textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>
+            {SUBTITLE}
+          </p>
+        </div>
+
+        {/* Chat Input Box */}
+        <div className="bg-white rounded-3xl shadow-2xl p-4 sm:p-5 mb-6 mx-auto max-w-2xl">
+          <textarea
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
+            placeholder={currentPlaceholder}
+            className="w-full min-h-[72px] resize-none border-0 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-0 text-base sm:text-lg leading-relaxed"
+            style={{ opacity: isAnimating ? 0.6 : 1, transition: 'opacity 0.3s ease' }}
+          />
+
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors text-sm font-medium">
+              <Paperclip className="w-4 h-4" />
+              Attach
+            </button>
+
+            <div className="flex items-center gap-3">
+              <button className="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-colors">
+                <Mic className="w-5 h-5" />
+              </button>
               <button
-                onClick={onSeeHowItWorks}
-                className="inline-flex items-center gap-2 text-zinc-900 hover:text-gray-600 font-medium text-base px-2 py-3.5 transition-colors duration-300"
+                onClick={() => handleSubmit()}
+                disabled={!inputValue.trim()}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-zinc-900 text-white hover:bg-zinc-700 transition-colors text-sm font-semibold disabled:opacity-50"
               >
-                <span className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-sm">▶</span>
-                See how it works
+                <Send className="w-4 h-4" />
+                Plan my trip
               </button>
             </div>
           </div>
-
-          <div className="hero-images relative h-[480px] lg:h-[560px]">
-            <div className="absolute left-0 top-8 w-[48%] h-[260px] rounded-2xl shadow-xl overflow-hidden">
-              <ImageSkeleton
-                src={HERO_IMAGES[0].src}
-                alt={HERO_IMAGES[0].alt}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-            </div>
-            <div className="absolute right-0 top-0 w-[50%] h-[300px] rounded-2xl shadow-2xl overflow-hidden">
-              <ImageSkeleton
-                src={HERO_IMAGES[1].src}
-                alt={HERO_IMAGES[1].alt}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-            </div>
-            <div className="absolute left-0 bottom-8 w-[48%] h-[230px] rounded-2xl shadow-xl overflow-hidden">
-              <ImageSkeleton
-                src={HERO_IMAGES[2].src}
-                alt={HERO_IMAGES[2].alt}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-            </div>
-            <div className="absolute right-0 bottom-0 w-[50%] h-[220px] rounded-2xl shadow-xl overflow-hidden">
-              <ImageSkeleton
-                src={HERO_IMAGES[3].src}
-                alt={HERO_IMAGES[3].alt}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-            </div>
-          </div>
         </div>
+
+        {/* Quick Action Chips */}
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-10 max-w-2xl mx-auto">
+          {quickActions.map((action) => (
+            <button
+              key={action.label}
+              onClick={() => handleSubmit(action.message)}
+              className="px-4 py-2 rounded-full bg-white/15 backdrop-blur-sm text-white text-sm font-medium border border-white/30 hover:bg-white/25 hover:border-white/50 transition-all duration-300"
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Scroll Indicator */}
+        <button
+          onClick={scrollToContent}
+          className="flex flex-col items-center gap-2 text-white/75 hover:text-white transition-colors mx-auto"
+        >
+          <span className="text-sm font-medium">See how I can help you</span>
+          <ChevronDown className="w-5 h-5 animate-bounce" />
+        </button>
       </div>
     </section>
   );

@@ -35,7 +35,9 @@ export const FEATURE_IMAGES = {
   markets: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80',
 } as const;
 
-export const CHAT_BG_IMAGE = 'https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1920&q=80';
+export const CHAT_BG_IMAGE = '/hero-bg.jpg';
+
+export const HERO_BG_IMAGE_FALLBACK = 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1920&q=80';
 
 export const QUICK_ACTIONS = [
   { id: 'new-trip', label: 'Create a new trip', icon: 'Compass', message: "I'd like to plan a new trip!" },

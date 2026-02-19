@@ -104,7 +104,7 @@ Once ALL required fields are collected, present a summary:
 **Route:** {departureCity} → {destination} → {departureCity}
 **When:** {dates or month + tripLengthDays}
 **Who:** {travelersCount or 'Just you'}
-**Budget:** ~${budgetAmount} total
+**Budget:** ~\${budgetAmount} total
 **Vibe:** {interests}, {pace} pace
 
 Does this look right, or should I tweak anything?"

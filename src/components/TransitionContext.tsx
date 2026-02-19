@@ -16,7 +16,7 @@ export function useTransitionNavigate() {
   return useContext(TransitionContext);
 }
 
-const TRANSITION_DURATION_MS = 1800;
+const TRANSITION_DURATION_MS = 600;
 
 const routePreloaders: Record<string, () => void> = {
   '/chat': () => import('../pages/ChatPageWrapper'),

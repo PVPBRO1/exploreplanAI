@@ -1,45 +1,54 @@
-import type { TripPlanInputs, Itinerary } from './types';
+import type { APIResponse, TripState } from './types';
 
-const API_ENDPOINT = import.meta.env.VITE_AI_API_URL || '/api/generate-itinerary';
+const FUNCTION_URL = '/.netlify/functions/planTrip';
+const REQUEST_TIMEOUT_MS = 60_000;
 
-const REQUEST_TIMEOUT_MS = 30_000;
-
-interface GenerateRequest {
-  tripInputs: TripPlanInputs;
+interface PlanTripRequest {
+  messages: { role: string; content: string }[];
+  tripState: TripState | null;
+  language: string;
+  intent?: string;
 }
 
-interface GenerateResponse {
-  itinerary: Itinerary;
-}
-
-export async function generateItinerary(
-  tripInputs: TripPlanInputs
-): Promise<Itinerary> {
+export async function callPlanTrip(request: PlanTripRequest): Promise<APIResponse> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
+  if (import.meta.env.DEV) {
+    console.log('[ExplorePlan] Calling planTrip:', {
+      messageCount: request.messages.length,
+      language: request.language,
+      tripState: request.tripState,
+    });
+  }
+
   try {
-    const res = await fetch(API_ENDPOINT, {
+    const res = await fetch(FUNCTION_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tripInputs } satisfies GenerateRequest),
+      body: JSON.stringify(request),
       signal: controller.signal,
     });
 
     if (!res.ok) {
       const errorBody = await res.text().catch(() => '');
-      throw new Error(
-        `Server error (${res.status}): ${errorBody || res.statusText}`
-      );
+      throw new Error(`Server error (${res.status}): ${errorBody || res.statusText}`);
     }
 
-    const data: GenerateResponse = await res.json();
-    return data.itinerary;
+    const data: APIResponse = await res.json();
+
+    if (import.meta.env.DEV) {
+      console.log('[ExplorePlan] Response:', {
+        type: data.type,
+        hasItinerary: !!data.itinerary,
+        nextQuestion: data.nextQuestion?.key,
+      });
+    }
+
+    return data;
   } catch (err: unknown) {
     if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new Error(
-        'Request timed out. The server took too long to respond. Please try again.'
-      );
+      throw new Error('Request timed out. The server took too long to respond. Please try again.');
     }
     throw err;
   } finally {

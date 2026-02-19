@@ -1,29 +1,19 @@
 import { ImageSkeleton } from '../components/ImageSkeleton';
 import { LinkButton } from '../components/LinkButton';
 import { useTransitionNavigate } from '../components/TransitionContext';
+import { DESTINATIONS } from '../lib/constants/images';
 import type { MouseEvent } from 'react';
-
-const destinations = [
-  { name: 'Paris, France', image: '/dest-paris.png', size: 'tall' },
-  { name: '4-Days in Rome', image: '/dest-rome.png', size: 'normal' },
-  { name: "Foodie's Tokyo", image: '/dest-tokyo.png', size: 'normal' },
-  { name: 'Bali, Indonesia', image: '/dest-bali.png', size: 'normal' },
-  { name: 'New York City', image: '/dest-nyc.png', size: 'normal' },
-  { name: 'Barcelona, Spain', image: '/dest-barcelona.png', size: 'tall' },
-  { name: 'Sydney, Australia', image: '/dest-sydney.png', size: 'normal' },
-  { name: 'London, UK', image: '/dest-london.png', size: 'normal' },
-];
 
 export function GetInspired() {
   const { navigateWithTransition } = useTransitionNavigate();
 
-  const handleCardClick = (e: MouseEvent<HTMLButtonElement>, _destName: string) => {
+  const handleCardClick = (e: MouseEvent<HTMLButtonElement>, destName: string) => {
     const el = e.currentTarget;
     el.style.transform = 'scale(0.97)';
     el.style.opacity = '0.9';
     el.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
     setTimeout(() => {
-      navigateWithTransition('/chat');
+      navigateWithTransition(`/chat?destination=${encodeURIComponent(destName)}`);
     }, 150);
   };
 
@@ -48,7 +38,7 @@ export function GetInspired() {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {destinations.map((dest) => (
+          {DESTINATIONS.map((dest) => (
             <button
               key={dest.name}
               onClick={(e) => handleCardClick(e, dest.name)}

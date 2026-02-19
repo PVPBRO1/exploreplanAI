@@ -1,47 +1,74 @@
-export interface TripPlanInputs {
-  destination: string;
-  dates?: string;
-  tripLength?: number;
-  budget: string;
-  travelers?: number;
-  pace: 'relaxed' | 'balanced' | 'packed' | '';
+export interface TripState {
+  destination: string | null;
+  dates: string | null;
+  tripLengthDays: number | null;
+  budgetRange: string | null;
+  pace: 'relaxed' | 'balanced' | 'packed' | null;
+  travelersCount: number | null;
   interests: string[];
-  accommodation: string;
+  accommodationPreference: string | null;
+  departureCity: string | null;
+  constraints: string[];
+}
+
+export interface ItineraryActivity {
+  title: string;
+  details: string;
+  location: string;
+  duration: string;
 }
 
 export interface ItineraryDay {
   day: number;
-  morning: string;
-  afternoon: string;
-  evening: string;
-  optionalNotes?: string;
-  mapQuery?: string;
+  morning: ItineraryActivity;
+  afternoon: ItineraryActivity;
+  evening: ItineraryActivity;
+  notes: string[];
+  mapQuery: string;
 }
 
 export interface Itinerary {
   tripTitle: string;
   summary: string;
   days: ItineraryDay[];
+  recommendedAreasToStay: string[];
+  estimatedDailyBudget: string;
+}
+
+export interface NextQuestion {
+  key: string;
+  prompt: string;
+  options?: string[];
+}
+
+export interface APIResponse {
+  type: 'intake' | 'itinerary';
+  assistantMessage: string;
+  nextQuestion: NextQuestion | null;
+  tripState: TripState;
+  itinerary: Itinerary | null;
 }
 
 export interface ChatMessage {
   id: number;
   role: 'ai' | 'user';
   text: string;
-  itinerary?: Itinerary;
+  nextQuestion?: NextQuestion | null;
+  itinerary?: Itinerary | null;
+  isError?: boolean;
 }
 
-export type PlannerField = keyof TripPlanInputs;
-
-export function createEmptyTripInputs(): TripPlanInputs {
+export function createEmptyTripState(): TripState {
   return {
-    destination: '',
-    dates: '',
-    tripLength: undefined,
-    budget: '',
-    travelers: undefined,
-    pace: '',
+    destination: null,
+    dates: null,
+    tripLengthDays: null,
+    budgetRange: null,
+    pace: null,
+    travelersCount: null,
     interests: [],
-    accommodation: '',
+    accommodationPreference: null,
+    departureCity: null,
+    constraints: [],
   };
 }

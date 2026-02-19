@@ -4,12 +4,11 @@ export function RouteLoader() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setProgress(25), 100);
-    const t2 = setTimeout(() => setProgress(45), 350);
-    const t3 = setTimeout(() => setProgress(65), 700);
-    const t4 = setTimeout(() => setProgress(80), 1100);
-    const t5 = setTimeout(() => setProgress(92), 1500);
-    const t6 = setTimeout(() => setProgress(100), 1750);
+    const t1 = setTimeout(() => setProgress(30), 50);
+    const t2 = setTimeout(() => setProgress(60), 150);
+    const t3 = setTimeout(() => setProgress(85), 300);
+    const t4 = setTimeout(() => setProgress(95), 450);
+    const t5 = setTimeout(() => setProgress(100), 550);
 
     return () => {
       clearTimeout(t1);
@@ -17,7 +16,6 @@ export function RouteLoader() {
       clearTimeout(t3);
       clearTimeout(t4);
       clearTimeout(t5);
-      clearTimeout(t6);
     };
   }, []);
 

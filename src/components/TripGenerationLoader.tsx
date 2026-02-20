@@ -1,102 +1,266 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plane, Building2, MapPin, Sparkles, CheckCircle } from 'lucide-react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { Check } from 'lucide-react';
+import { fetchLocationImage } from '../lib/api/unsplash';
 
-interface Stage {
-  label: string;
-  icon: typeof Plane;
-  progress: number;
+const STEPS = [
+  'Optimizing your route, end to end',
+  'Scanning 2000+ airlines for best value',
+  'Reading 1B+ reviews for you',
+  'Finding stays with the best deals',
+  'Tailoring the plan to you',
+];
+
+const LOCAL_FALLBACK_IMAGES = [
+  '/destinations/tokyo.jpg',
+  '/destinations/paris.jpg',
+  '/destinations/bali.jpg',
+  '/destinations/rome.jpg',
+  '/destinations/beach.jpg',
+  '/destinations/london.jpg',
+  '/destinations/dubai.jpg',
+  '/destinations/nyc.jpg',
+  '/destinations/sydney.jpg',
+  '/destinations/marrakech.jpg',
+];
+
+const DEST_IMAGE_MAP: Record<string, string[]> = {
+  japan: ['/destinations/tokyo.jpg'],
+  tokyo: ['/destinations/tokyo.jpg'],
+  kyoto: ['/destinations/tokyo.jpg'],
+  osaka: ['/destinations/tokyo.jpg'],
+  paris: ['/destinations/paris.jpg'],
+  france: ['/destinations/paris.jpg'],
+  bali: ['/destinations/bali.jpg'],
+  indonesia: ['/destinations/bali.jpg'],
+  rome: ['/destinations/rome.jpg'],
+  italy: ['/destinations/rome.jpg', '/destinations/italian-village.jpg'],
+  florence: ['/destinations/italian-village.jpg'],
+  barcelona: ['/destinations/barcelona.jpg'],
+  spain: ['/destinations/barcelona.jpg'],
+  london: ['/destinations/london.jpg'],
+  uk: ['/destinations/london.jpg'],
+  dubai: ['/destinations/dubai.jpg'],
+  'new york': ['/destinations/nyc.jpg'],
+  sydney: ['/destinations/sydney.jpg'],
+  australia: ['/destinations/sydney.jpg'],
+  marrakech: ['/destinations/marrakech.jpg'],
+  morocco: ['/destinations/marrakech.jpg'],
+  egypt: ['/destinations/egypt.jpg'],
+  cairo: ['/destinations/egypt.jpg'],
+  nepal: ['/destinations/nepal.jpg'],
+  portugal: ['/destinations/porto.jpg'],
+  lisbon: ['/destinations/porto.jpg'],
+  porto: ['/destinations/porto.jpg'],
+  mexico: ['/destinations/mexico.jpg'],
+  maldives: ['/destinations/beach.jpg'],
+  greece: ['/destinations/beach.jpg'],
+  iceland: ['/destinations/nepal.jpg'],
+  'cape town': ['/destinations/beach.jpg'],
+  'south africa': ['/destinations/beach.jpg'],
+  thailand: ['/destinations/bali.jpg'],
+  bangkok: ['/destinations/bali.jpg'],
+  peru: ['/destinations/nepal.jpg'],
+  singapore: ['/destinations/dubai.jpg'],
+};
+
+function getLocalImagesForDest(dest?: string): string[] {
+  if (!dest) return [];
+  const lower = dest.toLowerCase();
+  for (const [key, imgs] of Object.entries(DEST_IMAGE_MAP)) {
+    if (lower.includes(key)) return imgs;
+  }
+  return [];
 }
 
-const STAGES: Stage[] = [
-  { label: 'Building your itinerary...', icon: MapPin, progress: 25 },
-  { label: 'Scanning flights for best value...', icon: Plane, progress: 45 },
-  { label: 'Finding the best stays...', icon: Building2, progress: 65 },
-  { label: 'Adding local experiences...', icon: Sparkles, progress: 85 },
-  { label: 'Finalizing your trip...', icon: CheckCircle, progress: 100 },
+const CARD_ROTATIONS = [-6, 4, -3, 5];
+const CARD_BORDERS = [
+  'border-rose-200/70',
+  'border-pink-200',
+  'border-rose-100',
+  'border-pink-100',
 ];
 
 interface TripGenerationLoaderProps {
   isActive: boolean;
   departureCity?: string;
   destination?: string;
+  dataReady?: boolean;
+  progress?: number;
+  stageLabel?: string;
   onComplete?: () => void;
 }
 
-export function TripGenerationLoader({ isActive, departureCity, destination, onComplete }: TripGenerationLoaderProps) {
-  const [stageIndex, setStageIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
+function progressToCompletedSteps(p: number): number {
+  if (p >= 100) return STEPS.length;
+  if (p >= 85) return 4;
+  if (p >= 65) return 3;
+  if (p >= 45) return 2;
+  if (p >= 25) return 1;
+  return 0;
+}
+
+function ShimmerBar() {
+  return (
+    <div className="relative h-1 w-24 rounded-full overflow-hidden bg-slate-200/50 ml-auto">
+      <motion.div
+        className="absolute inset-y-0 left-0 w-1/2 rounded-full bg-gradient-to-r from-transparent via-rose-300/60 to-transparent"
+        animate={{ x: ['-100%', '200%'] }}
+        transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+      />
+    </div>
+  );
+}
+
+function LoaderImage({ src, fallback, alt }: { src: string; fallback: string; alt: string }) {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [failed, setFailed] = useState(false);
+
+  return (
+    <img
+      ref={imgRef}
+      src={failed ? fallback : src}
+      alt={alt}
+      className="w-full h-full object-cover"
+      loading="eager"
+      onError={() => {
+        if (!failed) setFailed(true);
+      }}
+    />
+  );
+}
+
+export function TripGenerationLoader({
+  isActive,
+  destination,
+  dataReady,
+  progress = 0,
+  onComplete,
+}: TripGenerationLoaderProps) {
+  const [completeCalled, setCompleteCalled] = useState(false);
+  const [destImages, setDestImages] = useState<string[]>([]);
+
+  const completedSteps = useMemo(() => progressToCompletedSteps(progress), [progress]);
+
+  const localDestImages = useMemo(() => getLocalImagesForDest(destination), [destination]);
+
+  const loadDestImages = useCallback(async () => {
+    if (!destination) return;
+    try {
+      const [img1, img2] = await Promise.allSettled([
+        fetchLocationImage(`${destination} scenic landscape`),
+        fetchLocationImage(`${destination} travel`),
+      ]);
+      const urls: string[] = [];
+      if (img1.status === 'fulfilled' && img1.value && !img1.value.startsWith('/destinations'))
+        urls.push(img1.value);
+      if (img2.status === 'fulfilled' && img2.value && !img2.value.startsWith('/destinations'))
+        urls.push(img2.value);
+      if (urls.length > 0) setDestImages(urls);
+    } catch {
+      /* local fallbacks handle it */
+    }
+  }, [destination]);
 
   useEffect(() => {
     if (!isActive) {
-      setStageIndex(0);
-      setProgress(0);
+      setCompleteCalled(false);
       return;
     }
+    loadDestImages();
+  }, [isActive, loadDestImages]);
 
-    const stageTimers = [2500, 2500, 2500, 2000, 1500];
-    let currentStage = 0;
-
-    const advance = () => {
-      if (currentStage < STAGES.length - 1) {
-        currentStage++;
-        setStageIndex(currentStage);
-        setProgress(STAGES[currentStage].progress);
-
-        if (currentStage < STAGES.length - 1) {
-          setTimeout(advance, stageTimers[currentStage]);
-        } else {
-          setTimeout(() => onComplete?.(), 1000);
-        }
-      }
-    };
-
-    setStageIndex(0);
-    setProgress(STAGES[0].progress);
-    const timer = setTimeout(advance, stageTimers[0]);
-
-    return () => clearTimeout(timer);
-  }, [isActive, onComplete]);
+  useEffect(() => {
+    if (!isActive) return;
+    if (dataReady && progress >= 100 && !completeCalled) {
+      setCompleteCalled(true);
+      const t = setTimeout(() => onComplete?.(), 600);
+      return () => clearTimeout(t);
+    }
+  }, [isActive, dataReady, progress, completeCalled, onComplete]);
 
   if (!isActive) return null;
 
-  const stage = STAGES[stageIndex];
-  const Icon = stage.icon;
+  const baseLocal = localDestImages.length > 0 ? localDestImages : [LOCAL_FALLBACK_IMAGES[0], LOCAL_FALLBACK_IMAGES[1]];
+  const images = [
+    destImages[0] || baseLocal[0] || LOCAL_FALLBACK_IMAGES[0],
+    destImages[1] || baseLocal[1] || baseLocal[0] || LOCAL_FALLBACK_IMAGES[1],
+    baseLocal[0] || LOCAL_FALLBACK_IMAGES[2],
+    baseLocal[1] || baseLocal[0] || LOCAL_FALLBACK_IMAGES[3],
+  ];
 
-  const labelWithContext = stage.label
-    .replace('flights', departureCity ? `flights from ${departureCity}` : 'flights')
-    .replace('best stays', destination ? `stays in ${destination}` : 'the best stays');
+  const headline = destination
+    ? `Building your ${destination} trip`
+    : 'Building your trip';
 
   return (
-    <div className="flex flex-col items-center justify-center h-full p-8">
-      <div className="w-full max-w-sm space-y-8">
-        <AnimatePresence mode="wait">
+    <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-rose-50 via-pink-50/60 to-fuchsia-50/40 px-6">
+      <h2 className="text-2xl md:text-3xl font-bold text-slate-800 text-center mb-8 leading-snug max-w-md">
+        {headline}
+      </h2>
+
+      <div className="flex items-center justify-center gap-3 mb-10">
+        {images.map((src, i) => (
           <motion.div
-            key={stageIndex}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-            className="flex flex-col items-center text-center gap-4"
+            key={`${src}-${i}`}
+            initial={{ opacity: 0, scale: 0.85, rotate: CARD_ROTATIONS[i] }}
+            animate={{ opacity: 1, scale: 1, rotate: CARD_ROTATIONS[i] }}
+            transition={{ duration: 0.5, delay: i * 0.08 }}
+            className={`w-28 h-32 md:w-36 md:h-40 rounded-2xl overflow-hidden border-[3px] ${CARD_BORDERS[i]} shadow-lg bg-white`}
           >
-            <div className="w-14 h-14 rounded-full bg-violet-100 flex items-center justify-center">
-              <Icon className="w-7 h-7 text-violet-600" />
-            </div>
-            <p className="text-lg font-medium text-gray-800">{labelWithContext}</p>
+            <LoaderImage
+              src={src}
+              fallback={LOCAL_FALLBACK_IMAGES[i % LOCAL_FALLBACK_IMAGES.length]}
+              alt=""
+            />
           </motion.div>
-        </AnimatePresence>
+        ))}
+      </div>
 
-        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-          <motion.div
-            className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full"
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-          />
-        </div>
+      <div className="space-y-3 w-full max-w-sm">
+        {STEPS.map((step, i) => {
+          const isDone = i < completedSteps;
+          const isCurrent = i === completedSteps && completedSteps < STEPS.length;
 
-        <p className="text-center text-sm text-gray-400">
-          Trip is being generated — {progress}%
-        </p>
+          return (
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.08 }}
+              className="flex items-center gap-3"
+            >
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-300 ${
+                isDone
+                  ? 'bg-emerald-500'
+                  : isCurrent
+                    ? 'border-2 border-rose-300 bg-white'
+                    : 'border-2 border-gray-200 bg-white'
+              }`}>
+                {isDone && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                {isCurrent && (
+                  <motion.div
+                    className="w-2.5 h-2.5 rounded-full bg-rose-400"
+                    animate={{ scale: [1, 1.3, 1] }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                )}
+              </div>
+
+              <span className={`text-sm transition-colors duration-300 flex-1 ${
+                isDone
+                  ? 'text-slate-800 font-semibold'
+                  : isCurrent
+                    ? 'text-slate-600 font-medium'
+                    : 'text-slate-400'
+              }`}>
+                {step}
+              </span>
+
+              {isCurrent && <ShimmerBar />}
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );

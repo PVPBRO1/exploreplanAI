@@ -4,7 +4,7 @@ import { config } from '../config.js';
 import { ZodItinerary } from '../validators.js';
 import { buildSystemPrompt, buildUserPrompt } from '../prompt.js';
 import { OpenAIError, TimeoutError } from '../errors.js';
-import type { NormalizedTripInputs, Itinerary } from '../types.js';
+import type { NormalizedTripInputs, Itinerary, ScraperSearchBundle } from '../types.js';
 
 let client: OpenAI | null = null;
 
@@ -15,11 +15,14 @@ export function createOpenAIClient(): OpenAI {
   return client;
 }
 
-export async function generateItinerary(inputs: NormalizedTripInputs): Promise<Itinerary> {
+export async function generateItinerary(
+  inputs: NormalizedTripInputs,
+  searchBundle?: ScraperSearchBundle,
+): Promise<Itinerary> {
   const openai = createOpenAIClient();
 
   const systemPrompt = buildSystemPrompt();
-  const userPrompt = buildUserPrompt(inputs);
+  const userPrompt = buildUserPrompt(inputs, searchBundle);
 
   const result = await callWithRetry(openai, systemPrompt, userPrompt);
   return result;

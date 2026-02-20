@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
+const MAPBOX_TOKEN = (import.meta.env.VITE_MAPBOX_TOKEN || '').trim();
+const HAS_VALID_MAPBOX_TOKEN = MAPBOX_TOKEN.startsWith('pk.');
 
 interface MapPin {
   dayNumber: number;
@@ -23,7 +24,7 @@ async function geocode(location: string): Promise<{ lat: number; lng: number } |
   const key = location.toLowerCase().trim();
   if (geocodeCache.has(key)) return geocodeCache.get(key) || null;
 
-  if (!MAPBOX_TOKEN) return null;
+  if (!HAS_VALID_MAPBOX_TOKEN) return null;
 
   try {
     const res = await fetch(
@@ -69,7 +70,7 @@ export function TripMap({ locations, onPinClick, className = '' }: TripMapProps)
   }, [locations]);
 
   useEffect(() => {
-    if (!mapContainer.current || !MAPBOX_TOKEN || pins.length === 0) return;
+    if (!mapContainer.current || !HAS_VALID_MAPBOX_TOKEN || pins.length === 0) return;
 
     if (map.current) {
       map.current.remove();
@@ -123,10 +124,10 @@ export function TripMap({ locations, onPinClick, className = '' }: TripMapProps)
     };
   }, [pins, onPinClick]);
 
-  if (!MAPBOX_TOKEN) {
+  if (!HAS_VALID_MAPBOX_TOKEN) {
     return (
-      <div className={`bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 text-sm ${className}`}>
-        Map unavailable — add VITE_MAPBOX_TOKEN to .env
+      <div className={`bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 text-sm text-center px-4 ${className}`}>
+        Map unavailable - set a valid VITE_MAPBOX_TOKEN (pk...) in Netlify and redeploy
       </div>
     );
   }

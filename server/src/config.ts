@@ -41,6 +41,13 @@ export const config = {
     store: boolEnv('OPENAI_STORE', false),
   },
 
+  scraperclaw: {
+    url: optionalEnv('SCRAPERCLAW_URL', 'http://localhost:8000'),
+    providerTimeoutMs: numericEnv('SCRAPERCLAW_PROVIDER_TIMEOUT_MS', 90_000),
+    pollIntervalMs: numericEnv('SCRAPERCLAW_POLL_INTERVAL_MS', 2_000),
+    maxRetries: numericEnv('SCRAPERCLAW_MAX_RETRIES', 1),
+  },
+
   rateLimit: {
     max: numericEnv('RATE_LIMIT_MAX', 60),
     timeWindow: optionalEnv('RATE_LIMIT_WINDOW', '1 minute'),

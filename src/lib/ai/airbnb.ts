@@ -10,13 +10,19 @@ interface AirbnbSearchParams {
   budget?: string;
 }
 
-function budgetToMaxPerNight(budget?: string): number | undefined {
+function budgetToMaxPerNight(budget?: string, checkin?: string, checkout?: string): number | undefined {
   if (!budget) return undefined;
   const num = parseInt(budget.replace(/[^0-9]/g, ''), 10);
   if (num && num > 0) {
-    // Rough heuristic: allocate ~40% of total budget to accommodation,
-    // spread across ~5 nights as a default ceiling
-    return Math.round((num * 0.4) / 5);
+    // Allocate ~40% of total budget to accommodation across actual nights.
+    const nights = (() => {
+      if (!checkin || !checkout) return 5;
+      const start = new Date(`${checkin}T12:00:00`);
+      const end = new Date(`${checkout}T12:00:00`);
+      const diff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      return Math.max(1, diff);
+    })();
+    return Math.round((num * 0.4) / nights);
   }
   const b = budget.toLowerCase();
   if (b === 'budget') return 80;
@@ -34,7 +40,7 @@ export async function fetchAirbnbListings(params: AirbnbSearchParams): Promise<A
       location: params.location,
       checkin: params.checkin,
       checkout: params.checkout,
-      max_per_night: budgetToMaxPerNight(params.budget),
+      max_per_night: budgetToMaxPerNight(params.budget, params.checkin, params.checkout),
       max_results: 4,
     };
 
@@ -55,7 +61,10 @@ export async function fetchAirbnbListings(params: AirbnbSearchParams): Promise<A
     }
 
     const data = await res.json();
-    return (data.listings || []) as AirbnbListing[];
+    return ((data.listings || []) as AirbnbListing[]).map((l) => ({
+      ...l,
+      source: l.source || (l.link?.includes('airbnb') ? 'Airbnb' : l.link?.includes('priceline') ? 'Priceline' : 'Airbnb'),
+    }));
   } catch (err: unknown) {
     if (err instanceof DOMException && err.name === 'AbortError') {
       throw new Error('Airbnb search timed out');

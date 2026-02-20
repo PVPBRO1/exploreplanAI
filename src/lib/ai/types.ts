@@ -19,6 +19,7 @@ export interface ItineraryActivity {
   time?: string;
   description: string;
   location?: string;
+  estimated_cost?: string;
 }
 
 export interface ItineraryDay {
@@ -37,6 +38,7 @@ export interface Itinerary {
   days: ItineraryDay[];
   recommendedAreasToStay: string[];
   estimatedDailyBudget: string;
+  upgradeTips?: string[];
 }
 
 export interface NextQuestion {
@@ -45,12 +47,18 @@ export interface NextQuestion {
   options?: string[];
 }
 
+export interface SearchResults {
+  stays: Record<string, unknown>[];
+  flights: Record<string, unknown>[];
+}
+
 export interface APIResponse {
   type: 'intake' | 'confirmation' | 'itinerary';
   assistantMessage: string;
   nextQuestion: NextQuestion | null;
   tripState: TripState;
   itinerary: Itinerary | null;
+  searchResults?: SearchResults | null;
 }
 
 export interface ChatMessage {
@@ -74,6 +82,7 @@ export interface AirbnbListing {
   home_type_detected: string;
   image_url: string | null;
   link: string;
+  source?: string;
 }
 
 export interface FlightEstimate {

@@ -1,3 +1,5 @@
+import { runScraperByName } from './lib/scraperclaw-run';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type',
@@ -14,8 +16,6 @@ export const handler = async (event: { httpMethod: string; body: string | null }
     return { statusCode: 405, headers: corsHeaders, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  const scraperUrl = process.env.SCRAPERCLAW_URL || 'http://localhost:8000';
-
   try {
     const { location, checkin, checkout, max_per_night, max_results = 4 } = JSON.parse(event.body || '{}');
 
@@ -23,35 +23,22 @@ export const handler = async (event: { httpMethod: string; body: string | null }
       return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Missing required fields: location, checkin, checkout' }) };
     }
 
-    const params: Record<string, string | number> = {
-      location,
-      checkin,
-      checkout,
-      max_results,
-    };
+    const params: Record<string, string | number> = { location, checkin, checkout, max_results };
     if (max_per_night) params.max_per_night = max_per_night;
 
-    console.log('[getAirbnb] Calling scraperclaw:', { scraperUrl, params });
+    console.log('[getAirbnb] Calling scraperclaw:', params);
 
-    const res = await fetch(`${scraperUrl}/api/scrapers/airbnb/run`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ params }),
-    });
+    const { results, error } = await runScraperByName('Airbnb Listings', params);
 
-    if (!res.ok) {
-      const errText = await res.text().catch(() => '');
-      console.error('[getAirbnb] Scraper error:', res.status, errText);
-      return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: 'Scraper service error', details: errText }) };
+    if (error) {
+      console.error('[getAirbnb] Scraper error:', error);
+      return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: 'Scraper service error', details: error }) };
     }
-
-    const data = await res.json();
-    const listings = data.results || data.data || [];
 
     return {
       statusCode: 200,
       headers: corsHeaders,
-      body: JSON.stringify({ listings }),
+      body: JSON.stringify({ listings: results }),
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';

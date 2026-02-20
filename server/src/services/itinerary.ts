@@ -1,4 +1,5 @@
-import type { TripPlanInputs, NormalizedTripInputs, Itinerary } from '../types.js';
+import type { TripPlanInputs, NormalizedTripInputs, Itinerary, ScraperSearchBundle } from '../types.js';
+import { gatherSearchBundle } from './scraperclaw.js';
 
 const DEFAULT_INTERESTS = ['highlights', 'food'];
 const DEFAULT_TRIP_LENGTH = 3;
@@ -19,6 +20,8 @@ export function normalizeTripInputs(raw: TripPlanInputs): NormalizedTripInputs {
     pace,
     interests: interests.map((i) => i.trim()).filter(Boolean),
     accommodation: raw.accommodation.trim(),
+    origin: Array.isArray(raw.origin) ? raw.origin[0] : raw.origin,
+    currency: raw.currency,
   };
 }
 
@@ -57,6 +60,13 @@ function extractPlaces(day: { morning: string; afternoon: string; evening: strin
   const properNouns = combined.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g) ?? [];
   const unique = [...new Set(properNouns)].slice(0, 6);
   return unique.join(', ');
+}
+
+export async function gatherSearchData(
+  normalized: NormalizedTripInputs,
+  requestId: string,
+): Promise<ScraperSearchBundle> {
+  return gatherSearchBundle(normalized, requestId);
 }
 
 export function finalValidateItinerary(itinerary: Itinerary, expectedDays: number): Itinerary {

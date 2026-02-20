@@ -2,9 +2,10 @@ import type { FastifyPluginAsync } from 'fastify';
 import { ZodGenerateRequest } from '../validators.js';
 import { ValidationError } from '../errors.js';
 import { toErrorResponse } from '../errors.js';
-import { normalizeTripInputs, ensureMapQueries, finalValidateItinerary } from '../services/itinerary.js';
+import { normalizeTripInputs, ensureMapQueries, finalValidateItinerary, gatherSearchData } from '../services/itinerary.js';
 import { generateItinerary } from '../services/openai.js';
 import { safeLogInputs } from '../redact.js';
+import type { Verification } from '../types.js';
 
 export const generateItineraryRoute: FastifyPluginAsync = async (fastify) => {
   fastify.post('/api/generate-itinerary', async (request, reply) => {
@@ -39,7 +40,24 @@ export const generateItineraryRoute: FastifyPluginAsync = async (fastify) => {
         msg: 'generating itinerary',
       });
 
-      let itinerary = await generateItinerary(normalized);
+      const searchBundle = await gatherSearchData(normalized, String(requestId));
+
+      let verification: Verification | undefined;
+      if (searchBundle.verification) {
+        verification = searchBundle.verification;
+        request.log.info({
+          requestId,
+          verification: {
+            status: verification.status,
+            attempted: verification.providersAttempted,
+            succeeded: verification.providersSucceeded,
+            counts: verification.counts,
+          },
+          msg: 'scraperclaw search complete',
+        });
+      }
+
+      let itinerary = await generateItinerary(normalized, searchBundle);
 
       itinerary = ensureMapQueries(itinerary, normalized.destination);
       itinerary = finalValidateItinerary(itinerary, normalized.tripLength);
@@ -52,7 +70,7 @@ export const generateItineraryRoute: FastifyPluginAsync = async (fastify) => {
         msg: 'itinerary generated',
       });
 
-      return reply.send({ itinerary });
+      return reply.send({ itinerary, verification });
     } catch (err) {
       const elapsed = Date.now() - start;
       request.log.error({

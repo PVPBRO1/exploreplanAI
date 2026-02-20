@@ -1,7 +1,7 @@
 import type { APIResponse, TripState } from './types';
 
 const FUNCTION_URL = '/.netlify/functions/planTrip';
-const REQUEST_TIMEOUT_MS = 60_000;
+const REQUEST_TIMEOUT_MS = 180_000;
 
 interface PlanTripRequest {
   messages: { role: string; content: string }[];
